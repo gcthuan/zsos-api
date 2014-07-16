@@ -53,22 +53,41 @@ class MessagesController < ApplicationController
   end
 
   def find_nearby_devices
-    nearby_devices = Array.new
+    nearby_users = Array.new
     #current_message = Message.where(latitude: message_params[:latitude], longtitude: message_params[:longtitude])
     current_message = Message.find(params[:id])
     User.all.each do |user|
       if !user.messages.include? current_message 
         d = distance [current_message.latitude, current_message.longtitude], [user.latitude, user.longtitude]
+        user.update_attribute :distance, d
         if d <= 5000
-          nearby_devices << user
+          nearby_users << user
         end
       end
     end
-    render json: nearby_devices
+    nearby_users.sort! { |a, b| a.distance <=> b.distance }
+    nearby_devices = Array.new
+    nearby_users.each do |user|
+      nearby_devices << user.device_id
+    end
+    data = {:key => "value", :key2 => ["array", "value"]}
+    GCM.send_notification(nearby_devices[0..49], data)
+    render json: nearby_devices[0..49]
   end
 
-  def message_params
-  	params.require(:message).permit(:audio_url, :audio_length, :user_id, :longtitude, :latitude, :message)
+  def find_all_devices
+    all_devices = User.pluck(:device_id)
+    data = {:key => "value", :key2 => ["array", "value"]}
+    GCM.send_notification(all_devices, data)
+    render json: all_devices
+  end
+
+  def find_one_device
+    device = params[:device_id]
+    message = Message.find(params[:id])
+    data = {:key => "value", :key2 => ["array", "value"]}
+    GCM.send_notification(device, data)
+    render json: device
   end
 
   private
@@ -90,6 +109,10 @@ class MessagesController < ApplicationController
 
     rm * c # Delta in meters
     end
+  end
+
+  def message_params
+    params.require(:message).permit(:audio_url, :audio_length, :user_id, :longtitude, :latitude, :message)
   end
 
 end

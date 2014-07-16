@@ -11,7 +11,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20140715034738) do
+ActiveRecord::Schema.define(version: 20140716031712) do
 
   create_table "images", force: true do |t|
     t.string   "small_image_url"
@@ -42,6 +42,7 @@ ActiveRecord::Schema.define(version: 20140715034738) do
     t.float    "latitude"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.float    "distance"
   end
 
 end
